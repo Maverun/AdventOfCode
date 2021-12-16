@@ -5,6 +5,21 @@ original_boards = []
 locations = {} #we will find where is board for this number etc,
 rng = []
 
+class LocationBoard:
+    def __init__(self,boardNumer,row,column) -> None:
+        self.done = False
+        self.boardNumber = boardNumer
+        self.row = row
+        self.column = column
+
+class Board:
+    def __init__(self,board,number) -> None:
+        self.board = board
+        self.number = number
+        self.score = 0
+        self.done = False
+
+
 def printA(a):
     for row in a:
         print(row)
@@ -14,33 +29,30 @@ def importData(data):
     rng = list(map(int,data.pop(0).split(',')))
     data.pop(0) #remove new line new before the board.
     holder = []
-    # print(data)
     counter_board = 0
     counter_row = -1 
     while(len(data)):
         counter_row += 1
         d = data.pop(0)
-        print(d)
         if d != '':
             d = list(map(int,d.split()))
             for index,element in enumerate(d):
-                #storing them as #Board, index(column)
-                if locations.get(element): locations[element].append([counter_board,counter_row,index])
-                else: locations[element] = [[counter_board,counter_row,index]]
-            # d = [-1 if rng.count(x) else x for x in map(int,d.split())]
-            # print(d)
+                l = LocationBoard(counter_board,counter_row,index)
+                if locations.get(element): locations[element].append(l)
+                else: locations[element] = [l]
             holder.append(list(map(int,d)))
         else:
             counter_board += 1
             counter_row = -1 
-            original_boards.append(holder)
+            b = Board(holder,counter_board)
+            original_boards.append(b)
             holder = []
     return original_boards,rng
 
 
-def checkWinner(board,row):
+def checkWinner(board,row,column):
     if board[row].count(-1) == len(board[row]): return True
-    columnboard = [x[row] for x in board]
+    columnboard = [x[column] for x in board]
     return columnboard.count(-1) == len(columnboard)
 
 def getScore(board):
@@ -51,33 +63,52 @@ def getScore(board):
     return total
 
 def firstPart():
-    boards = [row[:]for row in original_boards]
-    # printA(boards)
+    boards = original_boards[:]
     #so we will start from left to right for chosen number obviously, and we need to find which board is first to reached bingo
     # location contain chosen number with rowIndex and column Index
-    # print(rng,boards)
-    # print(locations)
     for chosenNumber in rng:
         listBoards = locations[chosenNumber]
-        # print(chosenNumber,listBoards)
-        for boardNumber,row,column in listBoards:
-            # print(row,column,boardNumber)
-            # print(boards[boardNumber],row,column)
-            boards[boardNumber][row][column] = -1
-            if checkWinner(boards[boardNumber],row): 
-                print('found the boards',boardNumber + 1)
-                score = getScore(boards[boardNumber])
-                print(score)
-                return boardNumber + 1, score * chosenNumber
-    print("NONE FOUND!")
+        for board in listBoards:
+            boards[board.boardNumber].board[board.row][board.column] = -1
+            if checkWinner(boards[board.boardNumber].board,board.row,board.column): 
+                # board.done =True
+                score = getScore(boards[board.boardNumber].board)
+                return board.boardNumber + 1, score * chosenNumber
     return None,None
 
+
+def secondPart():
+    # boards = [row[:]for row in original_boards]
+    boards = original_boards[:]
+    done_board = []
+    current_board = 0
+    #so we will start from left to right for chosen number obviously, and we need to find which board is first to reached bingo
+    # location contain chosen number with rowIndex and column Index
+    for chosenNumber in rng:
+        listBoards = locations[chosenNumber]
+        for board in listBoards:
+            if board.done or board.boardNumber in done_board: 
+                continue
+            boards[board.boardNumber].board[board.row][board.column] = -1
+            if checkWinner(boards[board.boardNumber].board,board.row,board.column): 
+                board.done =True
+                done_board.append(board.boardNumber)
+                current_board += 1
+                if len(boards) == current_board:
+                    score = getScore(boards[board.boardNumber].board)
+                    return board.boardNumber + 1, score * chosenNumber
+    print("NONE FOUND!")
+    return None,None
 
 
 
 def main():
     result,score = firstPart()
     print(result,score)
+    print("now checking second part")
+    result1,score1 = secondPart()
+    print(result1,score1)
+
     pass
 
 

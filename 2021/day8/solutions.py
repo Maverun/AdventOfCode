@@ -77,9 +77,9 @@ In the output values, how many times do digits 1, 4, 7, or 8 appear?
 
 def convertSeg(segIN,segOUT):
     segDigit = [set()]*10 #creating 10 element which is 0 - 9, i use set() instead of 0 to ignore freaking diagnostics about iterate[1] and slice thingy
-    seg_5 = [] #any segment that have 5 segment only, those are gonna be filter out soon later
-    seg_6 = [] # ^
+    segRemain= [] #any segment that have didnt have easy digit
     #first let find easy digit, while we do that, we will also put multi of same digit segments into ^^ list
+    
     for s in segIN:
         length = len(s)
         #getting easy digit
@@ -88,23 +88,19 @@ def convertSeg(segIN,segOUT):
         elif length == 4: segDigit[4] = set(s)
         elif length == 7: segDigit[8] = set(s)
         #now else check if it 5 or 6 segment
-        elif length == 5: seg_5.append(set(s))
-        elif length == 6: seg_6.append(set(s))
-    #we are done filtering them out... now let find which one is 0,0 is in segment 6 that contains 0,6,9, while we are at it , let find 6 and 9
-    #to do that, we need to do 8 - 0 and it should return 1 element, as for 6,9
-    #we can find 6,9 remain by doing subtract 1, if there is 4 segment remain, then it is 9, else if it 5 segment remain, then it is 6.
-    for s in seg_6:
-        if len(s - segDigit[7]) == 3 and len(s - segDigit[4]) == 3: segDigit[0] = s #we found 0
-        elif len(s - segDigit[7]) == 3 and len(s - segDigit[4]) == 2: segDigit[9] = s #we found 9
-        elif len(s - segDigit[7]) == 4 and len(s - segDigit[4]) == 3: segDigit[6] = s #we found 6
-    #now we can go ahead and find remain 2,3,5
-    #if we substract 9 with others, and get one segment, that mean it is 3, put that away, and then with 4 substract remain 2,5, 2 will return 3 segment and 5 will give 2 segment...
-    for s in seg_5:
-        if len(s - segDigit[7]) == 3 and len(s - segDigit[4]) == 3: segDigit[2] = s #we found 2
-        elif len(s - segDigit[7]) == 2 and len(s - segDigit[4]) == 2: segDigit[3] = s #we found 3
-        elif len(s - segDigit[7]) == 3 and len(s - segDigit[4]) == 2: segDigit[5] = s #we found 5
-    return [segDigit.index(set(x)) for x in segOUT]#we are returning segment output with index we can find
+        else: segRemain.append(set(s))
+    #we will iterate each now to find remain 0,2,3,5,6,9
+    s1,s4,s7 = segDigit[1],segDigit[4],segDigit[7]
+    for s in segRemain:
+        l1,l4,l7 = len(s - s1),len(s4 - s),len(s7 - s)
+        if l1 == 3: segDigit[3] = s
+        elif l1 == 5: segDigit[6] = s
+        elif l4 == 0: segDigit[9] = s
+        elif l4 == 2: segDigit[2] = s
+        elif l7 == 0: segDigit[0] = s
+        elif l7 == 1: segDigit[5] = s
 
+    return [segDigit.index(set(x)) for x in segOUT]#we are returning segment output with index we can find
 
 if __name__ == "__main__":
     with open('input.txt', 'r') as fp:
